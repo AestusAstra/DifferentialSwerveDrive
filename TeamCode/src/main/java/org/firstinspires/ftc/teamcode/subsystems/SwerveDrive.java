@@ -20,14 +20,13 @@ import org.firstinspires.ftc.teamcode.teleop.SwerveTeleOpConfig;
 public class SwerveDrive {
 
     private GoBildaPinpointDriver odo;
-    private final myDcMotorEx mod1m1, mod1m2, mod2m1, mod2m2, mod3m1, mod3m2;
-    private final AnalogInput mod1E, mod2E, mod3E;
+    private final myDcMotorEx mod1m1, mod1m2, mod2m1, mod2m2;
+    private final AnalogInput mod1E, mod2E;
     private Telemetry telemetry;
 
     // PIDs
     private final PIDcontroller mod1PID = new PIDcontroller(0,0,0,0,0);
     private final PIDcontroller mod2PID = new PIDcontroller(0,0,0,0,0);
-    private final PIDcontroller mod3PID = new PIDcontroller(0,0,0,0,0);
 
     private final swerveKinematics kinematics = new swerveKinematics();
 
@@ -55,15 +54,12 @@ public class SwerveDrive {
         mod1m2 = new myDcMotorEx(hardwareMap.get(DcMotorEx.class, "mod1m2"));
         mod2m1 = new myDcMotorEx(hardwareMap.get(DcMotorEx.class, "mod2m1"));
         mod2m2 = new myDcMotorEx(hardwareMap.get(DcMotorEx.class, "mod2m2"));
-        mod3m1 = new myDcMotorEx(hardwareMap.get(DcMotorEx.class, "mod3m1"));
-        mod3m2 = new myDcMotorEx(hardwareMap.get(DcMotorEx.class, "mod3m2"));
 
         mod1E = hardwareMap.get(AnalogInput.class, "mod1E");
         mod2E = hardwareMap.get(AnalogInput.class, "mod2E");
-        mod3E = hardwareMap.get(AnalogInput.class, "mod3E");
 
         // --- Motor Defaults ---
-        myDcMotorEx[] allMotors = {mod1m1, mod1m2, mod2m1, mod2m2, mod3m1, mod3m2};
+        myDcMotorEx[] allMotors = {mod1m1, mod1m2, mod2m1, mod2m2};
         for (myDcMotorEx motor : allMotors) {
             motor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
             motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -75,7 +71,6 @@ public class SwerveDrive {
         // Only bottom motors are reversed (Coaxial standard)
         mod1m2.setDirection(DcMotorSimple.Direction.FORWARD);
         mod2m2.setDirection(DcMotorSimple.Direction.FORWARD);
-        mod3m2.setDirection(DcMotorSimple.Direction.FORWARD);
 
 
     }
@@ -118,12 +113,10 @@ public class SwerveDrive {
         // 1. Update PID Coefficients
         mod1PID.setPIDgains(Kp, Kd, Ki, Kf, Kl);
         mod2PID.setPIDgains(Kp, Kd, Ki, Kf, Kl);
-        mod3PID.setPIDgains(Kp, Kd, Ki, Kf, Kl);
 
         // 2. Read Sensors (Volts -> Degrees)
         double mod1P = readEncoder(mod1E, m1Offset);
         double mod2P = readEncoder(mod2E, m2Offset);
-        double mod3P = readEncoder(mod3E, m3Offset);
 
         double heading = 0;
         boolean needsHeading = fieldCentric || (initialized && Math.abs(rot) < HEADING_LOCK_DEADBAND);
@@ -196,7 +189,6 @@ public class SwerveDrive {
         // Angle Wrap
         mod1P = mathsOperations.angleWrap(mod1P);
         mod2P = mathsOperations.angleWrap(mod2P);
-        mod3P = mathsOperations.angleWrap(mod3P);
 
         mod1reference = mathsOperations.angleWrap(mod1reference);
         mod2reference = mathsOperations.angleWrap(mod2reference);
@@ -205,28 +197,23 @@ public class SwerveDrive {
         // Efficient Turn
         double[] m1Eff = mathsOperations.efficientTurn(mod1reference, mod1P, mod1power);
         double[] m2Eff = mathsOperations.efficientTurn(mod2reference, mod2P, mod2power);
-        double[] m3Eff = mathsOperations.efficientTurn(mod3reference, mod3P, mod3power);
 
         // PID Calculation
         double m1PID = mod1PID.pidOut(AngleUnit.normalizeDegrees(m1Eff[0] - mod1P));
         double m2PID = mod2PID.pidOut(AngleUnit.normalizeDegrees(m2Eff[0] - mod2P));
-        double m3PID = mod3PID.pidOut(AngleUnit.normalizeDegrees(m3Eff[0] - mod3P));
 
         // 8. Differential Mixing (PID + Drive Power)
         double[] m1Out = mathsOperations.diffyConvert(-m1PID, m1Eff[1]);
         double[] m2Out = mathsOperations.diffyConvert(-m2PID, m2Eff[1]);
-        double[] m3Out = mathsOperations.diffyConvert(-m3PID, m3Eff[1]);
 
         // 9. Output
         mod1m1.setPower(m1Out[0]); mod1m2.setPower(m1Out[1]);
         mod2m1.setPower(m2Out[0]); mod2m2.setPower(m2Out[1]);
-        mod3m1.setPower(m3Out[0]); mod3m2.setPower(m3Out[1]);
 
         // 10. Telemetry
         telemetry.addData("Heading", heading);
         telemetry.addData("M1 Angle/Ref", "%.1f / %.1f", mod1P, m1Eff[0]);
         telemetry.addData("M2 Angle/Ref", "%.1f / %.1f", mod2P, m2Eff[0]);
-        telemetry.addData("M3 Angle/Ref", "%.1f / %.1f", mod3P, m3Eff[0]);
     }
 
     private double readEncoder(AnalogInput enc, double offset) {
@@ -261,39 +248,31 @@ public class SwerveDrive {
         // Update PIDs
         mod1PID.setPIDgains(Kp, Kd, Ki, Kf, Kl);
         mod2PID.setPIDgains(Kp, Kd, Ki, Kf, Kl);
-        mod3PID.setPIDgains(Kp, Kd, Ki, Kf, Kl);
 
         // Read Current Angles
         double mod1P = readEncoder(mod1E, m1Offset);
         double mod2P = readEncoder(mod2E, m2Offset);
-        double mod3P = readEncoder(mod3E, m3Offset);
 
         // Wrap/Optimize
         mod1P = mathsOperations.angleWrap(mod1P);
         mod2P = mathsOperations.angleWrap(mod2P);
-        mod3P = mathsOperations.angleWrap(mod3P);
 
         double[] m1Eff = mathsOperations.efficientTurn(targetAngle, mod1P, 0);
         double[] m2Eff = mathsOperations.efficientTurn(targetAngle, mod2P, 0);
-        double[] m3Eff = mathsOperations.efficientTurn(targetAngle, mod3P, 0);
 
         double m1PID = mod1PID.pidOut(AngleUnit.normalizeDegrees(m1Eff[0] - mod1P));
         double m2PID = mod2PID.pidOut(AngleUnit.normalizeDegrees(m2Eff[0] - mod2P));
-        double m3PID = mod3PID.pidOut(AngleUnit.normalizeDegrees(m3Eff[0] - mod3P));
 
         // Apply ONLY rotation power (no drive)
         double[] m1Out = mathsOperations.diffyConvert(m1PID, 0);
         double[] m2Out = mathsOperations.diffyConvert(-m2PID, 0);
-        double[] m3Out = mathsOperations.diffyConvert(-m3PID, 0);
 
         mod1m1.setPower(m1Out[0]); mod1m2.setPower(m1Out[1]);
         mod2m1.setPower(m2Out[0]); mod2m2.setPower(m2Out[1]);
-        mod3m1.setPower(m3Out[0]); mod3m2.setPower(m3Out[1]);
 
         telemetry.addData("Target", targetAngle);
         telemetry.addData("M1 Pos", mod1P);
         telemetry.addData("M2 Pos", mod2P);
-        telemetry.addData("M3 Pos", mod3P);
     }
 
     public void updateTelemetry(Telemetry telem){
