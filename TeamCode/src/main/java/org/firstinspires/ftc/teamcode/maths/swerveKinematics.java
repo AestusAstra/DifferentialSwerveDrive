@@ -24,37 +24,30 @@ public class swerveKinematics {
         // Vx = strafe - rot * Ry
         // Vy = forward + rot * Rx
 
-        // Module 1: Bottom Right (X=1, Y=-1)
-        double mod1strafe = strafe1 - (rotate * radius * -1.0);
+        // Module 1: Right (X=1, Y=-0)
+        double mod1strafe = strafe1 - (rotate * radius * -0.0);
         double mod1forward = forward1 + (rotate * radius * 1.0);
 
-        // Module 2: Bottom Left (X=-1, Y=-1)
-        double mod2strafe = strafe1 - (rotate * radius * -1.0);
+        // Module 2: Left (X=-1, Y=-0)
+        double mod2strafe = strafe1 - (rotate * radius * -0.0);
         double mod2forward = forward1 + (rotate * radius * -1.0);
-
-        // Module 3: Top Left (X=-1, Y=1)
-        double mod3strafe = strafe1 - (rotate * radius * 1.0);
-        double mod3forward = forward1 + (rotate * radius * -1.0);
 
         // 3. Extract Speed (Magnitude)
         double mod1speed = Math.sqrt((mod1strafe * mod1strafe) + (mod1forward * mod1forward));
         double mod2speed = Math.sqrt((mod2strafe * mod2strafe) + (mod2forward * mod2forward));
-        double mod3speed = Math.sqrt((mod3strafe * mod3strafe) + (mod3forward * mod3forward));
 
         // 4. Normalize Speeds (Don't exceed 1.0)
-        double max1 = Math.max(Math.abs(mod2speed), Math.abs(mod3speed));
+        double max1 = Math.max(Math.abs(mod2speed), Math.abs(mod2speed));
         double maxi = Math.max(max1, Math.abs(mod1speed));
         if(Math.abs(maxi) > 1) {
             mod1speed /= Math.abs(maxi);
             mod2speed /= Math.abs(maxi);
-            mod3speed /= Math.abs(maxi);
         }
 
         // 5. Extract Angle (Atan2)
         double mod1angle = Math.atan2(mod1strafe, mod1forward) * 180 / Math.PI;
         double mod2angle = Math.atan2(mod2strafe, mod2forward) * 180 / Math.PI;
-        double mod3angle = Math.atan2(mod3strafe, mod3forward) * 180 / Math.PI;
 
-        return new double[]{mod1speed, mod2speed, mod3speed, mod1angle, mod2angle, mod3angle};
+        return new double[]{mod1speed, mod2speed, mod1angle, mod2angle};
     }
 }
