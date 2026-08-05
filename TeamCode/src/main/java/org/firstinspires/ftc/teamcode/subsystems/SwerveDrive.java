@@ -173,12 +173,10 @@ public class SwerveDrive {
 
         double mod1power = output[0];
         double mod2power = output[1];
-        double mod3power = output[2];
 
         // References
         double mod1reference = output[3];
         double mod2reference = output[4];
-        double mod3reference = output[5];
 
         // 6. Locking Logic
         if (forward != 0 || strafe != 0 || rot != 0 || !initialized) {
@@ -192,7 +190,6 @@ public class SwerveDrive {
 
         mod1reference = mathsOperations.angleWrap(mod1reference);
         mod2reference = mathsOperations.angleWrap(mod2reference);
-        mod3reference = mathsOperations.angleWrap(mod3reference);
 
         // Efficient Turn
         double[] m1Eff = mathsOperations.efficientTurn(mod1reference, mod1P, mod1power);
