@@ -37,11 +37,10 @@ public class swerveKinematics {
         double mod2speed = Math.sqrt((mod2strafe * mod2strafe) + (mod2forward * mod2forward));
 
         // 4. Normalize Speeds (Don't exceed 1.0)
-        double max1 = Math.max(Math.abs(mod2speed), Math.abs(mod2speed));
-        double maxi = Math.max(max1, Math.abs(mod1speed));
-        if(Math.abs(maxi) > 1) {
-            mod1speed /= Math.abs(maxi);
-            mod2speed /= Math.abs(maxi);
+        double max1 = Math.max(Math.abs(mod2speed), Math.abs(mod1speed));
+        if(Math.abs(max1) > 1) {
+            mod1speed /= Math.abs(max1);
+            mod2speed /= Math.abs(max1);
         }
 
         // 5. Extract Angle (Atan2)
