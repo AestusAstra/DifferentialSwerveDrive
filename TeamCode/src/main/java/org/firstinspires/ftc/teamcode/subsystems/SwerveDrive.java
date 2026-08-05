@@ -175,8 +175,8 @@ public class SwerveDrive {
         double mod2power = output[1];
 
         // References
-        double mod1reference = output[3];
-        double mod2reference = output[4];
+        double mod1reference = output[2];
+        double mod2reference = output[3];
 
         // 6. Locking Logic
         if (forward != 0 || strafe != 0 || rot != 0 || !initialized) {
